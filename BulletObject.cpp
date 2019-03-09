@@ -10,15 +10,11 @@
 	BulletObject inherits from GameObject
 */
 
-BulletObject::BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, float entityOrientation, bool n)
-	: GameObject(entityPos, entityTexture, entityNumElements, n) {
-	orientation = entityOrientation;
+BulletObject::BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements)
+	: GameObject(entityPos, entityTexture, entityNumElements, true) {
+	orientation = 0.0f;
 	speed = 10.0f;
 	erase = false;
-
-	// so that it spawns near the front of the ship instead of directly in the center
-	position.x += speed * (float)cos(glm::radians(orientation)) * 0.025f;
-	position.y += speed * (float)sin(glm::radians(orientation)) * 0.025f;
 }
 
 void BulletObject::update(double deltaTime, GameObject* target) {
@@ -40,4 +36,16 @@ void BulletObject::update(double deltaTime, GameObject* target) {
 	orientation = degrees;
 
 	GameObject::update(deltaTime);
+}
+
+bool BulletObject::hitsTarget(GameObject* target) {
+	float dx = position.x - target->getPosition().x;
+	float dy = position.y - target->getPosition().y;
+
+	float distance = sqrt(pow(dx, 2) + pow(dy, 2));
+
+	if (distance < (target->getScale() / 2) + (scale / 20)) {
+		return true;
+	}
+	return false;
 }

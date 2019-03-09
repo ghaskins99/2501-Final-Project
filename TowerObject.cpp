@@ -11,8 +11,8 @@
 	It overrides GameObject's update method, so that you can check for input to change the velocity of the player
 */
 
-TowerObject::TowerObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, bool n)
-	: GameObject(entityPos, entityTexture, entityNumElements, n) {
+TowerObject::TowerObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements)
+	: GameObject(entityPos, entityTexture, entityNumElements, true) {
 	orientation = 90.0f;
 	erase = false;
 	rotationSpeed = 0.0f;

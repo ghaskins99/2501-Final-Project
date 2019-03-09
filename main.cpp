@@ -1,3 +1,11 @@
+/*
+GOALS - graydon
+done: Player ( = TowerObject) doesnt move and it targets the random wander boi ( = EnemyObject)
+done: when right click, set path, wander boi/enemy now paths to it
+done: left click spawn another tower
+done: other stuff with bullets and fuckery
+*/
+
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -32,9 +40,6 @@ const glm::vec3 viewport_background_color_g(0.15, 0.17, 0.21);
 
 // Global texture info
 GLuint tex[5];
-
-// Global game object info
-std::vector<EnemyObject*> enemyObjects;
 
 
 // Create the geometry for a square (with two triangles)
@@ -140,166 +145,6 @@ int getRand(int LO, int HI) {
 	return rand() % (HI - LO + 1);
 }
 
-/*------------------------------- GRAPH STUFF ----------------------------*/
-
-//// Main function that builds and runs the game
-//int main(void) {
-//	try {
-//		// Seed for generating random numbers with rand()
-//		srand((unsigned int)time(0));
-//
-//		// Setup window
-//		Window window(window_width_g, window_height_g, window_title_g);
-//
-//		// Set up z-buffer for rendering
-//		glEnable(GL_DEPTH_TEST);
-//		glDepthFunc(GL_LESS);
-//
-//		// Enable Alpha blending
-//		glEnable(GL_BLEND);
-//		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//
-//		// Create geometry of the square
-//		int size = CreateSquare();
-//
-//		// Set up shaders
-//		Shader shader("Shader/shader.vert", "Shader/shader.frag");
-//
-//		// Set up the textures
-//		setallTexture();
-//
-//		//Setup 40x30 graph
-//		Graph g = Graph(40, 30, GameObject(glm::vec3(0.0f), tex[4], size));
-//
-//		// random start location for the player
-//		int p = getRand(0, 1199);
-//		int q;
-//
-//		// make sure the npc does not start where the player does (yes they might start beside each other lol)
-//		do {
-//			q = getRand(0, 1199);
-//		} while (p == q);
-//
-//		Node start = g.getNode(p);
-//
-//		Node npcStart = g.getNode(q);
-//
-//		EnemyObject* player = new EnemyObject(glm::vec3(start.getX(), start.getY(), 0.0f), tex[1], size, 2.0f);
-//
-//		EnemyObject* npc = new EnemyObject(glm::vec3(npcStart.getX(), npcStart.getY(), 0.0f), tex[3], size, 2.3f);
-//
-//		enemyObjects.push_back(player);
-//		enemyObjects.push_back(npc);
-//
-//		g.setStart(p);
-//		g.setEnd(1198); // just a default end
-//		g.pathfind();
-//
-//		// Run the main loop
-//		double lastTime = glfwGetTime();
-//		while (!glfwWindowShouldClose(window.getWindow())) {
-//			// Clear background
-//			window.clear(viewport_background_color_g);
-//
-//			// Calculate delta time
-//			double currentTime = glfwGetTime();
-//			double deltaTime = currentTime - lastTime;
-//			lastTime = currentTime;
-//
-//			// Select proper shader program to use
-//			shader.enable();
-//
-//			// Setup camera to focus on (0, 0)
-//			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
-//			float cameraZoom = 0.2f;
-//			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
-//			shader.setUniformMat4("viewMatrix", viewMatrix);
-//
-//			// left or right click does the same thing here
-//			if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-//				double xpos, ypos;
-//				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
-//
-//				// the game objects currently are the npc and player, the player is updated last so that its path is drawn instead of the npcs
-//				for (int i = enemyObjects.size() - 1; i > -1; --i) {
-//					// dont let them click outside the graph area
-//					if ((xpos > 30 && xpos < 740 && ypos > 25 && ypos < 570)) {
-//						// the main event
-//						doPath(g, enemyObjects[i], true);
-//					}
-//				}
-//			}
-//
-//
-//			//Update and render all game objects
-//			for (int i = 0; i < enemyObjects.size(); ++i) {
-//				// Get the current object
-//				EnemyObject* currentGameObject = enemyObjects[i];
-//
-//				// Updates game objects
-//				currentGameObject->update(deltaTime);
-//
-//				// the object is in the middle of a path -> see if it can move on to the next node
-//				if (!currentGameObject->getFinished()) {
-//					Node* n = currentGameObject->getCurrNode();
-//
-//					// getting distance between the object and the node it is heading towards
-//					float d = glm::length(currentGameObject->getPosition() - glm::vec3(n->getX(), n->getY(), 0.0f));
-//
-//					if (d < 0.05) {
-//						currentGameObject->nextNode();
-//					}
-//				}
-//				// the path is finished, and it is the npc -> wander
-//				else if (currentGameObject == npc) {
-//					// for drawing the path of the player rather than npc
-//					int oldStart = g.getStartId();
-//					int oldEnd = g.getEndId();
-//
-//					// make it wander to a new node
-//					q = getRand(0, 1199);
-//					g.setEnd(q);
-//
-//					// this will give the npc its new path
-//					doPath(g, currentGameObject, false);
-//
-//					// so that the graph will draw the path of the player, even when the npc is wandering and the player is still, I wanted the player's last path to be shown
-//					g.setStart(oldStart);
-//					g.setEnd(oldEnd);
-//					g.pathfind();
-//				}
-//
-//				//reset color uniform.
-//				GLint color_loc = glGetUniformLocation(shader.getShaderID(), "colorMod");
-//				glUniform3f(color_loc, 0.0f, 0.0f, 0.0f);
-//
-//				// Render game objects
-//				currentGameObject->render(shader);
-//			}
-//
-//
-//			//render graph
-//			g.render(shader);
-//
-//			// Update other events like input handling
-//			glfwPollEvents();
-//
-//			// Push buffer drawn in the background onto the display
-//			glfwSwapBuffers(window.getWindow());
-//		}
-//	}
-//	catch (std::exception &e) {
-//		// print exception and sleep so error can be read
-//		PrintException(e);
-//		std::this_thread::sleep_for(std::chrono::milliseconds(100000));
-//	}
-//
-//	return 0;
-//}
-
-
-/* ------------------------------ AIMING AND SHOOTING -------------------------------------*/
-
 // Main function that builds and runs the game
 int main(void) {
 	try {
@@ -329,12 +174,45 @@ int main(void) {
 		// setup cameraZoom outside now
 		float cameraZoom = 0.2f;
 
-		// Setup the player object (position, texture, vertex count)
-		TowerObject* tower = new TowerObject(glm::vec3(0.0f, 2.5f, -1.0f), tex[0], size, true);
-		GameObject* target = new GameObject(glm::vec3(-0.5f / cameraZoom, -0.5f / cameraZoom, 0.0f), tex[1], size, true);
+		/*------------------ GAME SPECIFIC STUFF --------------------------*/
 
-		std::vector<BulletObject*> bullets;
-		bullets.push_back(new BulletObject(tower->getPosition(), tex[2], size, tower->getOrientation(), true));
+		//Setup 40x30 graph
+		Graph g = Graph(40, 30, GameObject(glm::vec3(0.0f), tex[4], size));
+
+		// random start location for the player
+		int p = getRand(0, 1199);
+		int q;
+
+		// make sure the npc does not start where the player does (yes they might start beside each other lol)
+		do {
+			q = getRand(0, 1199);
+		} while (p == q);
+
+		Node* start = g.getNode(p);
+
+		Node* npcStart = g.getNode(q);
+
+		// for towers
+		std::vector<TowerObject*> towerObjects;
+		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, some bool im using for now
+		TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size);
+		towerObjects.push_back(tower);
+
+		// enemy object info
+		std::vector<EnemyObject*> enemyObjects;
+		// first enemy, wanders
+		EnemyObject* target = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.3f);
+		enemyObjects.push_back(target);
+
+		// bullet info
+		std::vector<BulletObject*> bulletObjects;
+		// first bullet already exists lel
+		bulletObjects.push_back(new BulletObject(tower->getPosition(), tex[2], size));
+
+		// so it will start with a pathfind
+		g.setStart(p);
+		g.setEnd(1198); // just a default end
+		g.pathfind();
 
 
 		// Run the main loop
@@ -351,30 +229,122 @@ int main(void) {
 			// Select proper shader program to use
 			shader.enable();
 
-			// Setup camera to focus on the player object (the first object in the enemyObjects array)
-			//glm::vec3 cameraTranslatePos(-enemyObjects[0]->getPosition());
-			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
-			//glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
+			// Setup camera to focus on (0, 0)
+			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
+			float cameraZoom = 0.2f;
+			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
 			shader.setUniformMat4("viewMatrix", viewMatrix);
 
-			target->update(deltaTime);
-			tower->update(target);
-			bullets[0]->update(deltaTime, target);
+			/*--------------- INPUT --------------------*/
 
-			//float distance = glm::length(bullets[0]->getPosition() - target->getPosition());
-			float dx = bullets[0]->getPosition().x - target->getPosition().x;
-			float dy = bullets[0]->getPosition().y - target->getPosition().y;
+			// left or right click does the same thing here: replans the path
+			if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+				double xpos, ypos;
+				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
 
-			float distance = sqrt(pow(dx, 2) + pow(dy, 2));
+				// dont let them click outside the graph area
+				if ((xpos > 30 && xpos < 740 && ypos > 25 && ypos < 570)) {
+					// add a new tower if it's left click
+					// TODO: a tower is much larger area than one node on the graph, will want to do this first, then set all x amount of nodes
+					//		 "where the tower is" to obstacles
+					if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+						int n = g.selectNode(xpos, ypos);
+						Node* node = g.getNode(n);
 
-			if (distance < target->getScale() / 2 + bullets[0]->getScale() / 20) {
-				bullets.pop_back();
-				bullets.push_back(new BulletObject(tower->getPosition(), tex[2], size, tower->getOrientation(), true));
+						// add a new tower and its bullet
+						if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
+							towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size));
+							bulletObjects.push_back(new BulletObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[2], size));
+						}
+					}
+
+
+					bool trueOnlyOnce = true;
+					// gotta replan path since either new destination set or obstacle added
+					for (int i = enemyObjects.size() - 1; i > -1; --i) {
+						// the main event
+						doPath(g, enemyObjects[i], trueOnlyOnce);
+
+						// pls dont kill me
+						if (trueOnlyOnce) {
+							trueOnlyOnce = false;
+						}
+					}
+				}
 			}
 
-			target->render(shader);
-			tower->render(shader);
-			bullets[0]->render(shader);
+			/*--------------- UPDATE --------------------*/
+
+			//Update and render "all" targets
+			for (int i = 0; i < enemyObjects.size(); ++i) {
+				// Get the current object
+				EnemyObject* enemy = enemyObjects[i];
+
+				// Updates enemy
+				enemy->update(deltaTime);
+
+				// the object is doing a path -> see if it can move on to the next node
+				if (!enemy->getFinished()) {
+					Node* n = enemy->getCurrNode();
+
+					// getting distance between the object and the node it is heading towards
+					float d = glm::length(enemy->getPosition() - glm::vec3(n->getX(), n->getY(), 0.0f));
+
+					if (d < 0.05) {
+						enemy->nextNode();
+					}
+				}
+				// the path is finished -> it goes back to wander
+				else {
+					// pick new node to wander to
+					do {
+						q = getRand(0, 1199);
+					} while (g.getEndId() == q); // I'd rather it not go to the same node, not that it really matters most likely
+
+					// end of new path
+					g.setEnd(q);
+
+					// actually gives enemy the path
+					doPath(g, enemy, false);
+				}
+			}
+
+			//TODO: target selection, the above code is ok for multiple targets, the below code uses the single target declared at the start
+
+			for (TowerObject* t : towerObjects) {
+				t->update(target);
+			}
+
+			for (int i = 0; i < bulletObjects.size(); ++i) {
+				bulletObjects[i]->update(deltaTime, target);
+				
+				// if it has collided, replace it with a new bullet, and delete the old one since it is dynamically allocated (new)
+				// this is allowed ONLY because bullets and towers are currently 1:1, and each tower is added with its bullet
+				if (bulletObjects[i]->hitsTarget(target)) {
+					BulletObject* oldBullet = bulletObjects[i];
+					delete oldBullet;
+
+					bulletObjects[i] = new BulletObject(towerObjects[i]->getPosition(), tex[2], size);
+				}
+			}
+
+			/*--------------- RENDER --------------------*/
+
+			for (EnemyObject* e : enemyObjects) {
+				e->render(shader);
+			}
+
+			for (TowerObject* t : towerObjects) {
+				t->render(shader);
+			}
+
+
+			for (BulletObject* b : bulletObjects) {
+				b->render(shader);
+			}
+
+			//render graph
+			//g.render(shader);
 
 			// Update other events like input handling
 			glfwPollEvents();

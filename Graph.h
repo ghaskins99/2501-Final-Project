@@ -34,7 +34,7 @@ public:
 	int selectNode(double x, double y);
 
 	//returns a reference to the node with the supplied id.
-	Node& getNode(int id);
+	Node* getNode(int id);
 
 	//renders all the nodes in the graph
 	void render(Shader &shader);

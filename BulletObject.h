@@ -1,10 +1,12 @@
 #pragma once
 
 #include "GameObject.h"
+#include "TowerObject.h"
 
 // Inherits from GameObject
 class BulletObject : public GameObject {
 public:
-	BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, float entityOrientation, bool n);
+	BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements);
 	void update(double deltaTime, GameObject* target);
+	bool hitsTarget(GameObject* target);
 };

@@ -19,15 +19,8 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 }
 
 // this should only be used by asteroids/targets
-GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements, bool normal) {
-	position = entityPosition;
-	texture = entityTexture;
-	numElements = entityNumElements;
-	orientation = 0.0f;
-	speed = 0.0f;
-	erase = false;
-	scale = 1.0f;
-	rotationSpeed = 0.0f;
+GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements, bool normal)
+	: GameObject(entityPosition, entityTexture, entityNumElements) {
 	normalObj = normal;
 }
 

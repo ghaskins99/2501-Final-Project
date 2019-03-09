@@ -27,7 +27,7 @@ public:
 	inline float& getSpeed() { return speed; }
 	inline float& getScale() { return scale; }
 	inline bool getErase() { return erase; }
-	inline void Erase() { erase = true; }
+	inline void setErase(bool b) { erase = b; }
 
 	// Setters
 	inline void setPosition(glm::vec3& newPosition) { position = newPosition; }

@@ -120,7 +120,7 @@ void Graph::update() {
 }
 
 void Graph::setObstacle(int nodeId) {
-	Node* n = &getNode(nodeId);
+	Node* n = getNode(nodeId);
 	n->setObstacle(true);
 }
 
@@ -234,10 +234,10 @@ void Graph::render(Shader &shader) {
 }
 
 //returns a reference to the node with the supplied id.
-Node& Graph::getNode(int id) {
+Node* Graph::getNode(int id) {
 
 	//because we also store the graph as a map with the id as the key, we can easily reference each node.
-	return *nodeMap.at(id);
+	return nodeMap.at(id);
 }
 
 //using zombie-key based approach to Djikstra's algorithm
@@ -259,7 +259,7 @@ void Graph::pathfind() {
 	}
 
 	//The startnode is added to the pq with cost 0
-	QNode startNode = { &getNode(startNodeId), 0 };
+	QNode startNode = { getNode(startNodeId), 0 };
 	pq.push(startNode);
 
 
@@ -292,13 +292,13 @@ void Graph::pathfind() {
 			//compute cost to get to neighbouring node
 			//cost = the cost to get the corrent node + cost to traverse the edge
 
-			Node *n = &getNode(lowest.node->getOtherNode(neighbours.at(i)).getId());
+			Node *n = getNode(lowest.node->getOtherNode(neighbours.at(i)).getId());
 			//Node *n = &(lowest.node->getOtherNode(neighbours.at(i)));
 
 			int nodeCost = lowest.cost + neighbours.at(i).cost;
 
 			// manhattan distance for A*
-			int manhattanAddition = abs(n->getX() - getNode(endNodeId).getX()) + abs(n->getY() - getNode(endNodeId).getY());
+			int manhattanAddition = abs(n->getX() - getNode(endNodeId)->getX()) + abs(n->getY() - getNode(endNodeId)->getY());
 
 			// the lowest edge weight
 			auto min_e = std::min_element(neighbours.begin(), neighbours.end(), [](Edge &e1, Edge &e2) {
@@ -321,8 +321,8 @@ void Graph::pathfind() {
 	}
 
 	//queue is done, go in reverse from END to START to determine path
-	path.push_back(&getNode(endNodeId));
-	Node* currentNode = getNode(endNodeId).getPrev();
+	path.push_back(getNode(endNodeId));
+	Node* currentNode = getNode(endNodeId)->getPrev();
 
 	//while the current node isn't null, or the end, mark the current node as on the path
 	while (currentNode != NULL && currentNode->getId() != startNodeId) {
