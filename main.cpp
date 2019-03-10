@@ -195,19 +195,23 @@ int main(void) {
 		// for towers
 		std::vector<TowerObject*> towerObjects;
 		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, some bool im using for now
-		TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size);
+		TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size, tex[2]);
 		towerObjects.push_back(tower);
 
 		// enemy object info
 		std::vector<EnemyObject*> enemyObjects;
-		// first enemy, wanders
-		EnemyObject* target = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.3f);
-		enemyObjects.push_back(target);
+		// enemies
+		for (int i = 0; i < 4; ++i) {
+			// different spawn point for each guy
+			p = getRand(0, 1199);
 
-		// bullet info
-		std::vector<BulletObject*> bulletObjects;
-		// first bullet already exists lel
-		bulletObjects.push_back(new BulletObject(tower->getPosition(), tex[2], size));
+			npcStart = g.getNode(p);
+
+			enemyObjects.push_back(new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.3f));
+
+			doPath(g, enemyObjects[i], false);
+		}
+
 
 		// so it will start with a pathfind
 		g.setStart(p);
@@ -253,8 +257,8 @@ int main(void) {
 
 						// add a new tower and its bullet
 						if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
-							towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size));
-							bulletObjects.push_back(new BulletObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[2], size));
+							towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size, tex[2]));
+							//bulletObjects.push_back(new BulletObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[2], size));
 						}
 					}
 
@@ -312,20 +316,19 @@ int main(void) {
 			//TODO: target selection, the above code is ok for multiple targets, the below code uses the single target declared at the start
 
 			for (TowerObject* t : towerObjects) {
-				t->update(target);
+				if (enemyObjects.empty())
+					break;
+				t->update(deltaTime, enemyObjects.back());
 			}
 
-			for (int i = 0; i < bulletObjects.size(); ++i) {
-				bulletObjects[i]->update(deltaTime, target);
-				
-				// if it has collided, replace it with a new bullet, and delete the old one since it is dynamically allocated (new)
-				// this is allowed ONLY because bullets and towers are currently 1:1, and each tower is added with its bullet
-				if (bulletObjects[i]->hitsTarget(target)) {
-					BulletObject* oldBullet = bulletObjects[i];
-					target->takeDamage(oldBullet->getDamage());
-					delete oldBullet;
-
-					bulletObjects[i] = new BulletObject(towerObjects[i]->getPosition(), tex[2], size);
+			// removing elements from the game array while iterating, don't think could do in "for i=x" loop
+			for (std::vector<EnemyObject*>::iterator it = enemyObjects.begin(); it != enemyObjects.end();) {
+				if ((*it)->kill) {
+					delete (*it);
+					it = enemyObjects.erase(it);
+				}
+				else {
+					++it;
 				}
 			}
 
@@ -335,13 +338,9 @@ int main(void) {
 				e->render(shader);
 			}
 
+			// render bullet and towers
 			for (TowerObject* t : towerObjects) {
 				t->render(shader);
-			}
-
-
-			for (BulletObject* b : bulletObjects) {
-				b->render(shader);
 			}
 
 			//render graph
@@ -352,6 +351,14 @@ int main(void) {
 
 			// Push buffer drawn in the background onto the display
 			glfwSwapBuffers(window.getWindow());
+		}
+
+		// clean up memory
+		for (EnemyObject* e : enemyObjects) {
+			delete e;
+		}
+		for (TowerObject* t : towerObjects) {
+			delete t;
 		}
 	}
 	catch (std::exception &e) {

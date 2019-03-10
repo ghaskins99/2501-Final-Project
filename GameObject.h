@@ -26,8 +26,6 @@ public:
 	inline float& getOrientation() { return orientation; }
 	inline float& getSpeed() { return speed; }
 	inline float& getScale() { return scale; }
-	inline bool getErase() { return erase; }
-	inline void setErase(bool b) { erase = b; }
 
 	// Setters
 	inline void setPosition(glm::vec3& newPosition) { position = newPosition; }
@@ -50,6 +48,5 @@ protected:
 
 	// Object's texture
 	GLuint texture;
-	bool erase;
 	bool normalObj;
 };

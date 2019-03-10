@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameObject.h"
-#include "TowerObject.h"
 
 // Inherits from GameObject
 class BulletObject : public GameObject {

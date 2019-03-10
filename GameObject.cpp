@@ -12,7 +12,6 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	numElements = entityNumElements;
 	orientation = 0.0f; // so many default values... just to be safe
 	speed = 0.0f;
-	erase = false;
 	scale = 1.0f;
 	rotationSpeed = 0.0f;
 	normalObj = false;

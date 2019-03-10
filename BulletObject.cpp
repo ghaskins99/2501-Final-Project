@@ -13,8 +13,7 @@
 BulletObject::BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements)
 	: GameObject(entityPos, entityTexture, entityNumElements, true) {
 	orientation = 0.0f;
-	speed = 10.0f;
-	erase = false;
+	speed = 20.0f;
 	damage = 100.0f;
 }
 
@@ -45,7 +44,7 @@ bool BulletObject::hitsTarget(GameObject* target) {
 
 	float distance = sqrt(pow(dx, 2) + pow(dy, 2));
 
-	if (distance < (target->getScale() / 2) + (scale / 20)) {
+	if (distance < (target->getScale() / 3.0f) + (scale / 30.0f)) {
 		return true;
 	}
 	return false;
