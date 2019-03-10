@@ -1,11 +1,3 @@
-/*
-GOALS - graydon
-done: Player ( = TowerObject) doesnt move and it targets the random wander boi ( = EnemyObject)
-done: when right click, set path, wander boi/enemy now paths to it
-done: left click spawn another tower
-done: other stuff with bullets and fuckery
-*/
-
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -194,7 +186,7 @@ int main(void) {
 
 		// for towers
 		std::vector<TowerObject*> towerObjects;
-		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, some bool im using for now
+		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, texture for bullets
 		TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size, tex[2]);
 		towerObjects.push_back(tower);
 
@@ -202,21 +194,14 @@ int main(void) {
 		std::vector<EnemyObject*> enemyObjects;
 		// enemies
 		for (int i = 0; i < 4; ++i) {
-			// different spawn point for each guy
-			p = getRand(0, 1199);
-
-			npcStart = g.getNode(p);
+			// different spawn point & path for each enemy
+			npcStart = g.getNode(getRand(0, 1199));
+			g.setEnd(getRand(0, 1199));
 
 			enemyObjects.push_back(new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.3f));
 
 			doPath(g, enemyObjects[i], false);
 		}
-
-
-		// so it will start with a pathfind
-		g.setStart(p);
-		g.setEnd(1198); // just a default end
-		g.pathfind();
 
 
 		// Run the main loop
@@ -255,10 +240,9 @@ int main(void) {
 						int n = g.selectNode(xpos, ypos);
 						Node* node = g.getNode(n);
 
-						// add a new tower and its bullet
+						// add a new tower (with a bullet in constr.)
 						if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
 							towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size, tex[2]));
-							//bulletObjects.push_back(new BulletObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[2], size));
 						}
 					}
 
@@ -269,7 +253,7 @@ int main(void) {
 						// the main event
 						doPath(g, enemyObjects[i], trueOnlyOnce);
 
-						// pls dont kill me
+						// controls whether g.update() is called, only needs to happen once
 						if (trueOnlyOnce) {
 							trueOnlyOnce = false;
 						}
@@ -313,7 +297,7 @@ int main(void) {
 				}
 			}
 
-			//TODO: target selection, the above code is ok for multiple targets, the below code uses the single target declared at the start
+			//TODO: target selection, the below code uses the 'last' target in our vector
 
 			for (TowerObject* t : towerObjects) {
 				if (enemyObjects.empty())
@@ -338,20 +322,17 @@ int main(void) {
 				e->render(shader);
 			}
 
-			// render bullet and towers
+			// render towers & bullets
 			for (TowerObject* t : towerObjects) {
 				t->render(shader);
 			}
-
-			//render graph
-			//g.render(shader);
 
 			// Update other events like input handling
 			glfwPollEvents();
 
 			// Push buffer drawn in the background onto the display
 			glfwSwapBuffers(window.getWindow());
-		}
+		} // main
 
 		// clean up memory
 		for (EnemyObject* e : enemyObjects) {
