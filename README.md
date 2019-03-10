@@ -1,10 +1,12 @@
 Project Members
-	Graydon Haskins
-	Kevin Cheng
+
+	Graydon Haskins - 101080221
+	Kevin Cheng - 100997440
 
 Completed Elements
-	Agents move across the map using A*. Multiple enemies spawn at random locations on the edge of the map and move
-	towards the center of the map on a path planned using A*. After reaching the center, the enemies begin to wander
+
+	Agents move across the map using A*. Multiple enemies spawn at random locations on the map and move towards a
+	random destination on a path planned using A*. After reaching the center, the enemies begin to wander
 	around the map.
 
 	Towers shoot at enemies. The program starts with a single tower that will aim and shoot at one of the enemies on
@@ -18,8 +20,9 @@ Completed Elements
 	there is only 1 type of tower, which is placed using left click.
 
 Known Issues
-	Invalid key. When holding down left click to place towers, the program occasionally encounters and invalid key to
-	the map in the graph. This might be caused by the mouse moving out of the window while holding down right click.
 
-	Bullets don't despawn. When there are no targets left, any bullets that have not hit their target will stay frozen
-	and will not despawn.
+	Invalid map<K, T>key once in a while when holding down left click to place towers; the program occasionally
+	encounters an invalid key to the map in the graph.
+
+	Bullets currently do not despawn when there are no targets left. Any bullets that have not hit their target will
+	stay frozen and will not despawn.
