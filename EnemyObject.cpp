@@ -14,11 +14,12 @@ EnemyObject::EnemyObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entit
 	orientation - 0.0f;
 	finished = true;
 	speed = s;
+	hp = 500.0f;
 }
 
 // Update function for moving the player object around
 void EnemyObject::update(double deltaTime) {
-	if (finished) {
+	if (finished || kill) {
 		return;
 	}
 
@@ -45,6 +46,8 @@ void EnemyObject::update(double deltaTime) {
 
 // slightly modified render function so the players appear larger
 void EnemyObject::render(Shader &shader) {
+	if (kill) return;
+
 	// Bind the entities texture
 	glBindTexture(GL_TEXTURE_2D, texture);
 

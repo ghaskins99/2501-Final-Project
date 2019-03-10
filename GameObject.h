@@ -31,6 +31,9 @@ public:
 
 	// Setters
 	inline void setPosition(glm::vec3& newPosition) { position = newPosition; }
+	virtual void takeDamage(float);
+
+	bool kill;
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables
@@ -39,6 +42,7 @@ protected:
 	float speed;
 	float scale; // this is my object size because i didnt realize you made a variable for it already
 	float rotationSpeed;
+	float hp;
 
 	// Object's details
 	GLint numElements;

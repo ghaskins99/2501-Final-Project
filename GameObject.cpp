@@ -16,6 +16,7 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	scale = 1.0f;
 	rotationSpeed = 0.0f;
 	normalObj = false;
+	kill = false;
 }
 
 // this should only be used by asteroids/targets
@@ -26,6 +27,8 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 
 // Updates the GameObject's state. Can be overriden for children
 void GameObject::update(double deltaTime) {
+	if (kill) return;
+
 	// Update object position
 	//position += velocity * (float)deltaTime;
 
@@ -35,6 +38,8 @@ void GameObject::update(double deltaTime) {
 
 // Renders the GameObject using a shader. can be overridden
 void GameObject::render(Shader &shader) {
+	if (kill) return;
+
 	// Bind the entities texture
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -58,4 +63,9 @@ void GameObject::render(Shader &shader) {
 
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+}
+
+void GameObject::takeDamage(float damage) {
+	hp -= damage;
+	if (hp <= 0.0f) kill = true;
 }

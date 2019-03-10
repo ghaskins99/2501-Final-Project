@@ -15,6 +15,7 @@ BulletObject::BulletObject(glm::vec3 &entityPos, GLuint entityTexture, GLint ent
 	orientation = 0.0f;
 	speed = 10.0f;
 	erase = false;
+	damage = 100.0f;
 }
 
 void BulletObject::update(double deltaTime, GameObject* target) {

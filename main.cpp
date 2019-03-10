@@ -322,6 +322,7 @@ int main(void) {
 				// this is allowed ONLY because bullets and towers are currently 1:1, and each tower is added with its bullet
 				if (bulletObjects[i]->hitsTarget(target)) {
 					BulletObject* oldBullet = bulletObjects[i];
+					target->takeDamage(oldBullet->getDamage());
 					delete oldBullet;
 
 					bulletObjects[i] = new BulletObject(towerObjects[i]->getPosition(), tex[2], size);
