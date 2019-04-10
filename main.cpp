@@ -39,7 +39,7 @@ GLuint sprite_ebo;
 GLuint partic_vbo;
 GLuint partic_ebo;
 
-void drawParticles(GLuint particleprogram, int particlesize, TowerObject* t)
+void drawParticles(GLuint particleprogram, int particlesize, TowerObject* t, float cameraZoom)
 {
 
 	// Select proper shader program to use
@@ -54,9 +54,9 @@ void drawParticles(GLuint particleprogram, int particlesize, TowerObject* t)
 
 	float k = glfwGetTime();
 	//rot = glm::translate(rot, glm::vec3(0.0f, 0.0f, 0.0f));
-	glm::vec3 tPos = t->getPosition() / 5.0f; // scale factor
-	tPos.x += 0.12f * cos(glm::radians(t->getOrientation())); //move out from the tower a bit
-	tPos.y += 0.12f * sin(glm::radians(t->getOrientation()));
+	glm::vec3 tPos = t->getPosition() * cameraZoom; // scale factor
+	tPos.x += 0.6f * cameraZoom * cos(glm::radians(t->getOrientation())); //move out from the tower a bit
+	tPos.y += 0.6f * cameraZoom * sin(glm::radians(t->getOrientation()));
 	rot = glm::translate(rot, tPos);
 	//rot = glm::rotate(rot, -k * 360 / 6.283f, glm::vec3(0, 0, 1));
 	rot = glm::rotate(rot, t->getOrientation() - 90.0f, glm::vec3(0, 0, 1));
@@ -452,7 +452,7 @@ int main(void) {
 
 			// flame throwaaaa
 			float fireDistance = (enemyObjects.empty()) ? 3.5f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
-			if (fireDistance < 3.5f) {
+			if (fireDistance < 3.f / (cameraZoom*5.f)) {
 				//get ready to draw particles
 				//glBlendFunc(GL_ONE, GL_ONE);
 				glDepthMask(GL_FALSE); // draw particles without writing to depth buffer
@@ -460,7 +460,7 @@ int main(void) {
 				glBindBuffer(GL_ARRAY_BUFFER, partic_vbo);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, partic_ebo);
 				fireShader->attributeBinding();
-				drawParticles(fireShader->getShaderID() , 1000, towerObjects.back());
+				drawParticles(fireShader->getShaderID() , 1000, towerObjects.back(), cameraZoom);
 			}
 
 			// Update other events like input handling
