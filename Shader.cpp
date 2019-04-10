@@ -55,8 +55,10 @@ Shader::Shader(const char *vertPath, const char *fragPath) {
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
+	attributeBinding();
+}
 
-
+void Shader::attributeBinding() {
 	// Set attributes for shaders
 	// Should be consistent with how we created the buffers for the square
 	GLint vertex_att = glGetAttribLocation(shaderProgram, "vertex");

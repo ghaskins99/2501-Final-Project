@@ -12,7 +12,10 @@
 class Shader {
 public:
 	Shader(const char *vertPath, const char *fragPath);
+	Shader() {};
 	~Shader();
+
+	virtual void attributeBinding();
 
 	void enable();
 	void disable();

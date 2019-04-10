@@ -12,6 +12,7 @@
 #include <thread>
 
 #include "Shader.h"
+#include "FirePartShader.h"
 #include "Window.h"
 #include "TowerObject.h"
 #include "BulletObject.h"
@@ -33,6 +34,120 @@ const glm::vec3 viewport_background_color_g(0.15, 0.17, 0.21);
 // Global texture info
 GLuint tex[5];
 
+GLuint sprite_vbo;
+GLuint sprite_ebo;
+GLuint partic_vbo;
+GLuint partic_ebo;
+
+void drawParticles(GLuint particleprogram, int particlesize, TowerObject* t)
+{
+
+	// Select proper shader program to use
+	glUseProgram(particleprogram);
+
+	//set displacement
+	int matrixLocation = glGetUniformLocation(particleprogram, "x");
+	int timeLocation = glGetUniformLocation(particleprogram, "time");
+
+	glm::mat4 rot = glm::mat4();
+	glm::mat4 world = glm::mat4();
+
+	float k = glfwGetTime();
+	//rot = glm::translate(rot, glm::vec3(0.0f, 0.0f, 0.0f));
+	glm::vec3 tPos = t->getPosition() / 5.0f; // scale factor
+	tPos.x += 0.12f * cos(glm::radians(t->getOrientation())); //move out from the tower a bit
+	tPos.y += 0.12f * sin(glm::radians(t->getOrientation()));
+	rot = glm::translate(rot, tPos);
+	//rot = glm::rotate(rot, -k * 360 / 6.283f, glm::vec3(0, 0, 1));
+	rot = glm::rotate(rot, t->getOrientation() - 90.0f, glm::vec3(0, 0, 1));
+	
+	rot = glm::scale(rot, glm::vec3(0.05, 0.05, 0.05));
+	// get ready to draw, load matrix
+	glUniformMatrix4fv(matrixLocation, 1, GL_FALSE, &rot[0][0]);
+	glUniform1f(timeLocation, k);
+	glBindTexture(GL_TEXTURE_2D, tex[4]);
+	
+	// Draw 
+	glDrawElements(GL_TRIANGLES, 6*particlesize, GL_UNSIGNED_INT, 0);
+
+}
+
+int CreateParticleArray(void) {
+
+	// Each particle is a square with four vertices and two triangles
+
+	// Number of attributes for vertices and faces
+	const int vertex_attr = 7;  // 7 attributes per vertex: 2D (or 3D) position (2), direction (2), 2D texture coordinates (2), time (1)
+//	const int face_att = 3; // Vertex indices (3)
+
+	GLfloat vertex[] = {
+		//  square (two triangles)
+		//  Position      Color             Texcoords
+		-0.5f, 0.5f,	 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, // Top-left
+		0.5f, 0.5f,		 0.0f, 1.0f, 0.0f,		1.0f, 0.0f, // Top-right
+		0.5f, -0.5f,	 0.0f, 0.0f, 1.0f,		1.0f, 1.0f, // Bottom-right
+		-0.5f, -0.5f,	 1.0f, 1.0f, 1.0f,		0.0f, 1.0f  // Bottom-left
+	};
+
+	GLfloat particleatt[1000 * vertex_attr];
+	float theta, r, tmod;
+
+	for (int i = 0; i < 1000; i++)
+	{
+		if (i % 4 == 0)
+		{
+			theta = (6.28*(rand() % 1000) / 1000.0f);//(2*(rand() % 10000) / 10000.0f -1.0f)*0.13f;
+			r = 0.1f + 0.25*(rand() % 10000) / 10000.0f;
+			tmod = (rand() % 10000) / 10000.0f;
+		}
+		// position	
+		particleatt[i*vertex_attr + 0] = vertex[(i % 4) * 7 + 0];
+		particleatt[i*vertex_attr + 1] = vertex[(i % 4) * 7 + 1];
+
+		// velocity
+		particleatt[i*vertex_attr + 2] = sin(theta)*r;
+		particleatt[i*vertex_attr + 3] = abs(cos(theta)*r);
+
+		// phase
+		particleatt[i*vertex_attr + 4] = tmod;
+
+		// texture coordinate
+		particleatt[i*vertex_attr + 5] = vertex[(i % 4) * 7 + 5];
+		particleatt[i*vertex_attr + 6] = vertex[(i % 4) * 7 + 6];
+
+
+	}
+
+
+	GLuint face[] = {
+		0, 1, 2, // t1
+		2, 3, 0  //t2
+	};
+
+	GLuint manyface[1000 * 6];
+
+	for (int i = 0; i < 1000; i++)
+	{
+		for (int j = 0; j < 6; j++)
+			manyface[i * 6 + j] = face[j] + i * 4;
+	}
+
+	GLuint vbo, ebo;
+
+	// Create buffer for vertices
+	glGenBuffers(1, &partic_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, partic_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(particleatt), particleatt, GL_STATIC_DRAW);
+
+	// Create buffer for faces (index buffer)
+	glGenBuffers(1, &partic_ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, partic_ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(manyface), manyface, GL_STATIC_DRAW);
+
+	// Return number of elements in array buffer
+	return sizeof(manyface);
+
+}
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -58,16 +173,14 @@ int CreateSquare(void) {
 		2, 3, 0  //t2
 	};
 
-	GLuint vbo, ebo;
-
 	// Create buffer for vertices
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glGenBuffers(1, &sprite_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex), vertex, GL_STATIC_DRAW);
 
 	// Create buffer for faces (index buffer)
-	glGenBuffers(1, &ebo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	glGenBuffers(1, &sprite_ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(face), face, GL_STATIC_DRAW);
 
 	// Return number of elements in array buffer (6 in this case)
@@ -104,7 +217,7 @@ void setallTexture(void)
 	setthisTexture(tex[1], "Assets/rock.png");
 	setthisTexture(tex[2], "Assets/laser2.png");
 	setthisTexture(tex[3], "Assets/saw.png");
-	setthisTexture(tex[4], "Assets/orb.png");
+	setthisTexture(tex[4], "Assets/fire.png");
 
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -158,7 +271,10 @@ int main(void) {
 		int size = CreateSquare();
 
 		// Set up shaders
-		Shader shader("Shader/shader.vert", "Shader/shader.frag");
+		Shader spriteShader("Shader/shader.vert", "Shader/shader.frag");
+	
+		CreateParticleArray();
+		FirePartShader* fireShader = new FirePartShader();
 
 		// Set up the textures
 		setallTexture();
@@ -209,6 +325,7 @@ int main(void) {
 		while (!glfwWindowShouldClose(window.getWindow())) {
 			// Clear background
 			window.clear(viewport_background_color_g);
+			glDepthMask(GL_TRUE);
 
 			// Calculate delta time
 			double currentTime = glfwGetTime();
@@ -216,13 +333,19 @@ int main(void) {
 			lastTime = currentTime;
 
 			// Select proper shader program to use
-			shader.enable();
+			spriteShader.enable();
 
 			// Setup camera to focus on (0, 0)
 			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
 			float cameraZoom = 0.2f;
 			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
-			shader.setUniformMat4("viewMatrix", viewMatrix);
+			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
+
+			glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
+			spriteShader.attributeBinding();
+
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			/*--------------- INPUT --------------------*/
 
@@ -319,12 +442,25 @@ int main(void) {
 			/*--------------- RENDER --------------------*/
 
 			for (EnemyObject* e : enemyObjects) {
-				e->render(shader);
+				e->render(spriteShader);
 			}
 
 			// render towers & bullets
 			for (TowerObject* t : towerObjects) {
-				t->render(shader);
+				t->render(spriteShader);
+			}
+
+			// flame throwaaaa
+			float fireDistance = (enemyObjects.empty()) ? 3.5f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
+			if (fireDistance < 3.5f) {
+				//get ready to draw particles
+				//glBlendFunc(GL_ONE, GL_ONE);
+				glDepthMask(GL_FALSE); // draw particles without writing to depth buffer
+
+				glBindBuffer(GL_ARRAY_BUFFER, partic_vbo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, partic_ebo);
+				fireShader->attributeBinding();
+				drawParticles(fireShader->getShaderID() , 1000, towerObjects.back());
 			}
 
 			// Update other events like input handling
@@ -332,7 +468,7 @@ int main(void) {
 
 			// Push buffer drawn in the background onto the display
 			glfwSwapBuffers(window.getWindow());
-		} // main
+		} // while loop
 
 		// clean up memory
 		for (EnemyObject* e : enemyObjects) {
