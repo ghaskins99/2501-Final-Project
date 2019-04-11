@@ -162,8 +162,8 @@ int Graph::selectNode(double x, double y) {
 		float cursor_x_pos = (x / (float)(window_width_g / 2)) - 1.0f;	//transforms cursor position to screen coordinates
 		float cursor_y_pos = (y / (float)(window_height_g / 2)) - 1.0f;
 
-		cursor_x_pos /= 0.2;
-		cursor_y_pos /= 0.2;	//transforms cursor position based on screen scale.
+		cursor_x_pos /= screenScale;
+		cursor_y_pos /= screenScale;	//transforms cursor position based on screen scale.
 
 
 		float start_x = -4.4f;

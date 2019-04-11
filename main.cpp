@@ -26,7 +26,7 @@
 
 // Globals that define the OpenGL window and viewport
 const std::string window_title_g = "Assignment 3";
-const unsigned int window_width_g = 800;
+const unsigned int window_width_g = 1000;
 const unsigned int window_height_g = 600;
 //const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
 const glm::vec3 viewport_background_color_g(0.15, 0.17, 0.21);
@@ -327,6 +327,8 @@ int main(void) {
 			window.clear(viewport_background_color_g);
 			glDepthMask(GL_TRUE);
 
+			glViewport(0, 0, 800, 600);
+
 			// Calculate delta time
 			double currentTime = glfwGetTime();
 			double deltaTime = currentTime - lastTime;
@@ -338,9 +340,10 @@ int main(void) {
 			// Setup camera to focus on (0, 0)
 			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
 			float cameraZoom = 0.2f;
+			g.setScreenScale(cameraZoom);
 			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
 			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
-
+			
 			glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
 			spriteShader.attributeBinding();
@@ -440,7 +443,7 @@ int main(void) {
 			}
 
 			/*--------------- RENDER --------------------*/
-
+			
 			for (EnemyObject* e : enemyObjects) {
 				e->render(spriteShader);
 			}
@@ -452,7 +455,7 @@ int main(void) {
 
 			// flame throwaaaa
 			float fireDistance = (enemyObjects.empty()) ? 3.5f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
-			if (fireDistance < 3.f / (cameraZoom*5.f)) {
+			if (fireDistance < 0.5f / cameraZoom) {
 				//get ready to draw particles
 				//glBlendFunc(GL_ONE, GL_ONE);
 				glDepthMask(GL_FALSE); // draw particles without writing to depth buffer
