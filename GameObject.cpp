@@ -6,10 +6,8 @@
 */
 
 // used and extended by bullet, player, shield
-GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements) {
-	position = entityPosition;
-	texture = entityTexture;
-	numElements = entityNumElements;
+GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements) 
+	: Renderable(entityPosition, entityTexture, entityNumElements) {
 	orientation = 0.0f; // so many default values... just to be safe
 	speed = 0.0f;
 	scale = 1.0f;

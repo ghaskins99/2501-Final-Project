@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <array>
 #define GLEW_STATIC
 #include <GL/glew.h> // window management library
 #include <GL/glfw3.h>
@@ -19,6 +20,7 @@
 #include "EnemyObject.h"
 #include "Graph.h"
 #include "Node.h"
+#include "UIController.h"
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -33,6 +35,7 @@ const glm::vec3 viewport_background_color_g(0.15, 0.17, 0.21);
 
 // Global texture info
 GLuint tex[5];
+std::array<GLuint, 13> fakefont;
 
 GLuint sprite_vbo;
 GLuint sprite_ebo;
@@ -220,6 +223,15 @@ void setallTexture(void)
 	setthisTexture(tex[4], "Assets/fire.png");
 
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
+
+	//fakefont
+	glGenTextures(fakefont.max_size(), fakefont.data());
+	for (int i = 0; i < fakefont.max_size(); ++i) {
+		std::string str = "Assets/fakefont/" + std::to_string(i) + ".png";
+		char* ch = &str[0];
+		setthisTexture(fakefont[i], ch);
+	}
+	glBindTexture(GL_TEXTURE_2D, fakefont[0]);
 }
 
 // random float between LO and HI
@@ -319,6 +331,8 @@ int main(void) {
 			doPath(g, enemyObjects[i], false);
 		}
 
+		// uuuu iiiii
+		UIController ui(fakefont.data(), size);
 
 		// Run the main loop
 		double lastTime = glfwGetTime();
@@ -327,28 +341,10 @@ int main(void) {
 			window.clear(viewport_background_color_g);
 			glDepthMask(GL_TRUE);
 
-			glViewport(0, 0, 800, 600);
-
 			// Calculate delta time
 			double currentTime = glfwGetTime();
 			double deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
-
-			// Select proper shader program to use
-			spriteShader.enable();
-
-			// Setup camera to focus on (0, 0)
-			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
-			float cameraZoom = 0.2f;
-			g.setScreenScale(cameraZoom);
-			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
-			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
-			
-			glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
-			spriteShader.attributeBinding();
-
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			/*--------------- INPUT --------------------*/
 
@@ -443,6 +439,30 @@ int main(void) {
 			}
 
 			/*--------------- RENDER --------------------*/
+
+			// Select proper shader program to use
+			spriteShader.enable();
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glBindBuffer(GL_ARRAY_BUFFER, sprite_vbo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
+			spriteShader.attributeBinding();
+
+			// Setup camera to focus on (0, 0)
+			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f)) * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
+			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
+
+			glViewport(0, 0, 1000, 600);
+			ui.render(spriteShader);
+
+			glViewport(0, 0, 800, 600);
+
+			// setup camera to zoom/pan
+			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
+			cameraZoom = 0.2f;
+			g.setScreenScale(cameraZoom);
+			viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
+			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
 			
 			for (EnemyObject* e : enemyObjects) {
 				e->render(spriteShader);
@@ -452,6 +472,8 @@ int main(void) {
 			for (TowerObject* t : towerObjects) {
 				t->render(spriteShader);
 			}
+
+			//g.render(spriteShader);
 
 			// flame throwaaaa
 			float fireDistance = (enemyObjects.empty()) ? 3.5f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
