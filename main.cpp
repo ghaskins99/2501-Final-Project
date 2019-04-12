@@ -332,7 +332,11 @@ int main(void) {
 		}
 
 		// uuuu iiiii
-		UIController ui(fakefont.data(), size);
+		std::vector<GLuint> towerTextures;
+		for (int i = 0; i < 3; ++i) {
+			towerTextures.push_back(tex[0]);
+		}
+		UIController ui(fakefont.data(), size, towerTextures);
 
 		// Run the main loop
 		double lastTime = glfwGetTime();
@@ -349,7 +353,7 @@ int main(void) {
 			/*--------------- INPUT --------------------*/
 
 			// left or right click does the same thing here: replans the path
-			if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS || glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
 				double xpos, ypos;
 				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
 
@@ -358,19 +362,17 @@ int main(void) {
 					// add a new tower if it's left click
 					// TODO: a tower is much larger area than one node on the graph, will want to do this first, then set all x amount of nodes
 					//		 "where the tower is" to obstacles
-					if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-						int n = g.selectNode(xpos, ypos);
-						Node* node = g.getNode(n);
 
-						// add a new tower (with a bullet in constr.)
-						if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
-							towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size, tex[2]));
-						}
+					int n = g.selectNode(xpos, ypos);
+					Node* node = g.getNode(n);
+
+					// add a new tower (with a bullet in constr.)
+					if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
+						towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size, tex[2]));
 					}
-
-
+					
 					bool trueOnlyOnce = true;
-					// gotta replan path since either new destination set or obstacle added
+					// gotta replan path since obstacle added
 					for (int i = enemyObjects.size() - 1; i > -1; --i) {
 						// the main event
 						doPath(g, enemyObjects[i], trueOnlyOnce);
@@ -473,10 +475,10 @@ int main(void) {
 				t->render(spriteShader);
 			}
 
-			//g.render(spriteShader);
+			g.render(spriteShader);
 
 			// flame throwaaaa
-			float fireDistance = (enemyObjects.empty()) ? 3.5f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
+			float fireDistance = (enemyObjects.empty() || towerObjects.empty()) ? 100.f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
 			if (fireDistance < 0.5f / cameraZoom) {
 				//get ready to draw particles
 				//glBlendFunc(GL_ONE, GL_ONE);
