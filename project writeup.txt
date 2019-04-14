@@ -1,0 +1,63 @@
+Technical Requirements
+	1. Written in C++ using OpenGL to render; readable code with no fatal bugs.
+		The program is written in C++ and runs without fatal bugs.
+
+	2. Path planning used to determine enemy movement.
+		Enemies use path planning to navigate a 4-connected graph.
+
+	3. Finite state machine AI for tower behaviour. Visible differences in different states. (E.g., fire on cooldown.)
+		Regular towers have a visible cooldown on firing. Flamethrower towers are "inactive" when no enemies are nearby, but will activate and track enemies if any are within range. The autonomous defender alters between a chase state and a stationary firing state.
+
+	4. Finite state machine controlling overall game (e.g., loading screen, pause, break from action between levels).
+		Did not get this working.
+
+	5. At least two instances of particle systems used.\
+		Only 1 instance of particle systems is present. It is used for the flamethrower tower's fire effect.
+
+	6. All movement handled through transformations.
+
+	7. At least one instance of hierarchical transformations for a compound object (e.g., a tower with articulated arms)
+		Did not get this working.
+
+	8. A gameworld larger than the screen, with ability to scroll around and see different parts.
+		Did not get this working.
+
+Gameplay Requirements
+	1. At least three different enemy types.
+
+	2. At least three different tower types.
+		The game has a default tower, a flamethrower tower and an AOE slow tower
+
+	3. An autonomous mobile defender.
+		The player can add autonomous defenders that will chase after enemies
+
+	4. Currency to buy new towers. (Or, some clever way to otherwise get the player to make long-term decisions.)
+
+	5. At least three levels with different layouts.
+
+	6. A HUD showing available towers, current cash, health, other game elements of interest.
+
+	7. At least one interesting powerup with a timer.
+
+	8. No cheese -- choices should be interesting.
+
+Gameplay/Technical Features Beyond Minimum
+	N/A
+
+Design Notes
+	List of Entities:
+	1. Default Tower - The default tower shoots 1 enemy at a time. It has a 2 second delay between shots.
+	2. Flamethrower Tower - The flamethrower tower damages all enemies in a small cone. It does significantly less damage than the default tower but has a faster "fire rate" because it does AOE damage. It also does double damage at very close range. When no enemies are nearby, the tower will idle. If enemies are nearby, it will track the nearest enemy.
+	3. AOE Slow Tower - The AOE slow tower reduces the speed of all enemies within range by 50%. Multiple slow towers can affect an enemy. The slow reduction is multiplicative (i.e. 50% -> 25% -> 12.5% etc). Enemies are no longer affected when they leave the tower's range.
+	4. Autonomous Defender - The autonomous defender uses a chase behaviour to go after enemies. As soon as its target is within range, the defender stops moving and begins to shoot at the target. If the target leaves its range the defender resumes its chase behaviour. If the target dies, it chooses a new target. The defender fires significantly faster than the default tower, but does significantly less damage because it is mobile.
+
+Implementation Notes
+	All towers inherit from GameObject. The flamethrower tower inherits from TowerObject but the slow tower does not. This is because the slow tower has no use for the firing behaviour in TowerObject.
+	While the flamethrower tower does not "shoot" projectiles, it maintains a vector of BulletObjects that are used for hit detection. The scale and position of each bullet is manipulated directly by FlameTower.
+	The autonomous defender inherits from TowerObject because when it target is within range, it stays still and shoots. It reuses a lot of the code in EnemyObject, but does not inherit from EnemyObject. This design decision was made for the sake of clarity.
+
+Known Bugs/Limitations
+	The autonomous defender does not face the direction it is travelling.
+	The flamethrower tower uses circular hit detection with multiple circles that very roughly approximates a cone.
+	None of the towers have indicators to show their range.
+
