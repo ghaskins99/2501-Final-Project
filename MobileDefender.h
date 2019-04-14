@@ -28,16 +28,14 @@ protected:
 	std::vector<Node*> path;
 	// current "target" node we are heading towards
 	Node * currNode;
-
-	// orientation, in degrees
-	float orientation;
+	glm::vec3 velocity;
 
 	// if we have finished traversing our current path
 	bool finished;
-
-	// speed travelled at
-	float speed;
+	float orientation;
 
 	float range;
+	float a_max;
+	
 };
 

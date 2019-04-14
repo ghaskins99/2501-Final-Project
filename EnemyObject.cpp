@@ -15,6 +15,7 @@ EnemyObject::EnemyObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entit
 	finished = true;
 	speed = s;
 	hp = 500.0f;
+	currNode = nullptr;
 	speedMultiplier = 1.0f;
 }
 

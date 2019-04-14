@@ -6,16 +6,15 @@
 */
 
 // used and extended by bullet, player, shield
-GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements) {
-	position = entityPosition;
-	texture = entityTexture;
-	numElements = entityNumElements;
+GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements)
+	: Renderable(entityPosition, entityTexture, entityNumElements) {
 	orientation = 0.0f; // so many default values... just to be safe
 	speed = 0.0f;
 	scale = 1.0f;
 	rotationSpeed = 0.0f;
 	normalObj = false;
 	kill = false;
+	merked = false;
 }
 
 // this should only be used by asteroids/targets
@@ -66,5 +65,5 @@ void GameObject::render(Shader &shader) {
 
 void GameObject::takeDamage(float damage) {
 	hp -= damage;
-	if (hp <= 0.0f) kill = true;
+	if (hp <= 0.0f) kill = merked = true;
 }

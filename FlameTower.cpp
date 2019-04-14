@@ -15,10 +15,10 @@ FlameTower::FlameTower(glm::vec3 &entityPos, GLuint entityTexture, GLint entityN
 	
 	for (int i = 0; i < bullets.size(); ++i) {
 		if (i < 4) {
-			bullets[i]->setScale(i * 1.5);
+			bullets[i]->setScale(i * 1.5f);
 		}
 		else {
-			bullets[i]->setScale(3 * 1.5);
+			bullets[i]->setScale(3 * 1.5f);
 		}
 		bullets[i]->setPosition(glm::vec3(i * cos(glm::radians(orientation)) * sep + position.x,
 			i * sin(glm::radians(orientation)) * sep + position.y, 1.0f));

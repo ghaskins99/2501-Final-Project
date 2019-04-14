@@ -19,7 +19,7 @@ TowerObject::TowerObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entit
 	bulletTexture = bulletTex;
 	
 	fireCooldown = 0;
-	fireRate = 0.5;
+	fireRate = 1.5f;
 	//spawn a bullet
 	damage = 100;
 	//bullets.push_back(new BulletObject(position, bulletTexture, entityNumElements));

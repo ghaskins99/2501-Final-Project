@@ -8,13 +8,13 @@ in vec2 uv_interp;
 out vec4 FragColor;
 
 uniform sampler2D onetex;
-uniform vec3 colorMod;
+uniform vec4 colorMod;
 
 void main()
 {
 	vec4 color = texture2D(onetex, uv_interp);
 	FragColor = vec4(color.r,color.g,color.b,color.a);
-	FragColor += vec4(colorMod, 0.0);					//the fragment color is modified by the 'color' uniform
+	FragColor += colorMod;					//the fragment color is modified by the 'color' uniform
     if((color.r + color.g + color.b) / 3.0 > 0.95)
 	{
 		discard;

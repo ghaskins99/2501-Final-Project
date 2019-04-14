@@ -7,11 +7,11 @@ MobileDefender::MobileDefender(glm::vec3 &entityPos, GLuint entityTexture, GLint
 	: TowerObject(entityPos, entityTexture, entityNumElements, bulletTex) {
 	orientation = 0.0f;
 	finished = true;
-	speed = 2.5f;
+	speed = 4.f;
 	hp = 500.0f;
 	range = 1.5f;
 	fireRate = 3.0f;
-	damage = 40;
+	damage = 50.f;
 }
 
 
@@ -64,8 +64,8 @@ void MobileDefender::update(float deltaTime, GameObject* target) {
 void MobileDefender::render(Shader &shader) {
 	if (kill) return;
 
-	// Bind the entities texture
-	glBindTexture(GL_TEXTURE_2D, texture);
+	//// Bind the entities texture
+	//glBindTexture(GL_TEXTURE_2D, texture);
 
 	/*// Setup the transformation matrix for the shader
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
