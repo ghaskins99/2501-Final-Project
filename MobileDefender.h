@@ -32,7 +32,7 @@ protected:
 
 	// if we have finished traversing our current path
 	bool finished;
-	float orientation;
+	float moveOrientation;
 
 	float range;
 	float a_max;

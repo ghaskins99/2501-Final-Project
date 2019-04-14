@@ -36,7 +36,7 @@ void MobileDefender::update(float deltaTime, GameObject* target) {
 		if (fireCooldown > 0)
 			fireCooldown -= deltaTime;
 
-		// calculate orientation 
+		// calculate movement orientation 
 		float dx = currNode->getX() - position.x;
 		float dy = position.y - currNode->getY();
 
@@ -51,12 +51,29 @@ void MobileDefender::update(float deltaTime, GameObject* target) {
 
 		float degrees = glm::degrees(radians);
 
-		orientation = degrees;
+		moveOrientation = degrees;
 
-		position.x += speed * (float)deltaTime * cos(glm::radians(orientation));
-		position.y += speed * (float)deltaTime * sin(glm::radians(orientation));
+		position.x += speed * (float)deltaTime * cos(glm::radians(moveOrientation));
+		position.y += speed * (float)deltaTime * sin(glm::radians(moveOrientation));
 
 		updateBullets(deltaTime, target);
+
+		// calculate look orientation
+		dx = target->getPosition().x - position.x;
+		dy = position.y - target->getPosition().y;
+
+		radians = atan2f(dy, dx);
+
+		if (radians < 0) {
+			radians = abs(radians);
+		}
+		else {
+			radians = 2 * M_PI - radians;
+		}
+
+		degrees = glm::degrees(radians);
+
+		orientation = degrees;
 	}
 }
 
