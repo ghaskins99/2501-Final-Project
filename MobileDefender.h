@@ -1,15 +1,17 @@
 #pragma once
-
 #include "GameObject.h"
+#include "EnemyObject.h"
+#include "TowerObject.h"
 #include "Node.h"
 
-// Inherits from GameObject
-class EnemyObject : public GameObject {
+class MobileDefender : public TowerObject
+{
 public:
-	EnemyObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, float s);
+	MobileDefender(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, GLuint bulletTex);
+	~MobileDefender();
 
 	// Update function for moving the player object around
-	virtual void update(double deltaTime) override;
+	virtual void update(float deltaTime, GameObject* target) override;
 	virtual void render(Shader &shader) override;
 
 	void setPath(std::vector<Node*> p);
@@ -19,7 +21,7 @@ public:
 	inline Node* getCurrNode() { return currNode; }
 	inline bool getFinished() { return finished; }
 
-	float speedMultiplier;
+	inline virtual std::string getType() { return "mobile"; }
 
 protected:
 	// current path to follow
@@ -35,4 +37,7 @@ protected:
 
 	// speed travelled at
 	float speed;
+
+	float range;
 };
+

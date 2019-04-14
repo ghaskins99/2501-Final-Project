@@ -107,16 +107,16 @@ void Graph::update() {
 		//pathfind();
 	}
 
-	//if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-	//	//gets the node corresponding the mouseclick
-	//	int n = selectNode(xpos, ypos);
+	if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		//gets the node corresponding the mouseclick
+		int n = selectNode(xpos, ypos);
 
-	//	//set the start to selected node, if node exists and is not the start-node.
-	//	if (n != -1 && n != startNodeId) {
-	//		setEnd(n);
-	//	}
-	//	//pathfind();
-	//}
+		//set the start to selected node, if node exists and is not the start-node.
+		if (n != -1 && n != startNodeId) {
+			setEnd(n);
+		}
+		//pathfind();
+	}
 }
 
 void Graph::setObstacle(int nodeId) {
@@ -162,8 +162,8 @@ int Graph::selectNode(double x, double y) {
 		float cursor_x_pos = (x / (float)(window_width_g / 2)) - 1.0f;	//transforms cursor position to screen coordinates
 		float cursor_y_pos = (y / (float)(window_height_g / 2)) - 1.0f;
 
-		cursor_x_pos /= screenScale;
-		cursor_y_pos /= screenScale;	//transforms cursor position based on screen scale.
+		cursor_x_pos /= 0.2;
+		cursor_y_pos /= 0.2;	//transforms cursor position based on screen scale.
 
 
 		float start_x = -4.4f;
@@ -209,23 +209,23 @@ void Graph::render(Shader &shader) {
 			nodeObj.setPosition(glm::vec3(currentNode.getX(), currentNode.getY(), 0.0f));
 
 			//set the color of the node via the color uniform. Default is dark green
-			glUniform4f(color_loc, -0.2f, -0.2f, -0.2f, 0.f);	//dark green
+			glUniform3f(color_loc, -0.2f, -0.2f, -0.2f);	//dark green
 
 			//change the color uniform depending on if the node is the start or end node.
 			if (currentNode.getId() == startNodeId) {
-				glUniform4f(color_loc, 1.0f, -1.0f, -1.0f, 0.f);	//red = start
+				glUniform3f(color_loc, 1.0f, -1.0f, -1.0f);	//red = start
 			}
 			else if (currentNode.getId() == endNodeId) {
-				glUniform4f(color_loc, -1.0f, -1.0f, 1.0f, 0.f); //blue = end
+				glUniform3f(color_loc, -1.0f, -1.0f, 1.0f); //blue = end
 			}
 			else if (currentNode.isObstacle()) {
-				glUniform4f(color_loc, 0.4f, -1.0f, 0.7f, 0.f);	//purple = obstacle
+				glUniform3f(color_loc, 0.4f, -1.0f, 0.7f);	//purple = obstacle
 			}
 			else if (currentNode.isVisited() && !currentNode.isOnPath()) {
-				glUniform4f(color_loc, -1.0f, 0.0f, 1.0f, 0.f);	//light blue = visited
+				glUniform3f(color_loc, -1.0f, 0.0f, 1.0f);	//light blue = visited
 			}
 			else if (currentNode.isOnPath()) {
-				glUniform4f(color_loc, 0.0f, 0.0f, 0.0f, 0.f);	//light green = on path
+				glUniform3f(color_loc, 0.0f, 0.0f, 0.0f);	//light green = on path
 			}
 
 			nodeObj.render(shader);

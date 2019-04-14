@@ -15,7 +15,7 @@ EnemyObject::EnemyObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entit
 	finished = true;
 	speed = s;
 	hp = 500.0f;
-	currNode = nullptr;
+	speedMultiplier = 1.0f;
 }
 
 // Update function for moving the player object around
@@ -41,8 +41,8 @@ void EnemyObject::update(double deltaTime) {
 
 	orientation = degrees;
 
-	position.x += speed * (float)deltaTime * cos(glm::radians(orientation));
-	position.y += speed * (float)deltaTime * sin(glm::radians(orientation));
+	position.x += speedMultiplier * speed * (float)deltaTime * cos(glm::radians(orientation));
+	position.y += speedMultiplier * speed * (float)deltaTime * sin(glm::radians(orientation));
 }
 
 // slightly modified render function so the players appear larger

@@ -1,8 +1,15 @@
 #pragma once
 
-#include "Renderable.h"
+#include <GL/glew.h>
+#include <GL/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <iostream>
 
-class GameObject : public Renderable {
+#include "Shader.h"
+
+
+class GameObject {
 public:
 	GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements);
 	GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements, bool normal);
@@ -23,12 +30,13 @@ public:
 	// Setters
 	inline void setPosition(glm::vec3& newPosition) { position = newPosition; }
 	virtual void takeDamage(float);
-	inline void setHP(float h) { hp = h; }
+	inline void setScale(float s) { scale = s; }
 
-	bool kill, merked;
+	bool kill;
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables
+	glm::vec3 position;
 	float orientation;
 	float speed;
 	float scale; // this is my object size because i didnt realize you made a variable for it already
@@ -36,7 +44,10 @@ protected:
 	float hp;
 
 	// Object's details
+	GLint numElements;
 	float objectSize; // Not currently being used (will be needed for collision detection when objects have a different scale)
 
+	// Object's texture
+	GLuint texture;
 	bool normalObj;
 };

@@ -75,7 +75,8 @@ private:
 	void main()\n\
 	{\n\
 		vec4 color = texture2D(onetex, uv_interp);\n\
-		gl_FragColor = vec4(color.r, color.g, color.b * colourTime * 1.75, color.a * (1 - fadeTime));\n\
+		gl_FragColor = vec4(color.r, color.g, color.b, color.a * (1 - fadeTime));\n\
+		//* colourTime * 1.75\n\
 		if(color.a < 0.5)\n\
 		{\n\
 	//		gl_FragColor.a = 0.0;\n\

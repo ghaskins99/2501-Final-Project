@@ -47,7 +47,6 @@ public:
 	//setters
 	inline void setStart(int nodeId) { startNodeId = nodeId; }
 	inline void setEnd(int nodeId) { endNodeId = nodeId; }
-	inline void setScreenScale(float s) { screenScale = s; }
 
 	//getters
 	inline int getStartId() { return startNodeId; }
@@ -69,6 +68,5 @@ private:
 
 	//stores all nodes on the path found from start to end
 	std::vector<Node*> path;
-	float screenScale;
 
 };

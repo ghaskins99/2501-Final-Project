@@ -19,9 +19,11 @@ TowerObject::TowerObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entit
 	bulletTexture = bulletTex;
 	
 	fireCooldown = 0;
-	fireRate = 1.5f;
+	fireRate = 0.5;
 	//spawn a bullet
-	bullets.push_back(new BulletObject(position, bulletTexture, entityNumElements));
+	damage = 100;
+	//bullets.push_back(new BulletObject(position, bulletTexture, entityNumElements));
+	//bullets.back()->setDamage(damage);
 }
 
 // Update function for moving the player object around
@@ -50,10 +52,12 @@ void TowerObject::update(float deltaTime, GameObject* target) {
 		fireCooldown = 1.0f / fireRate;
 		//spawn bullet here
 		bullets.push_back(new BulletObject(position, bulletTexture, numElements));
+		bullets.back()->setDamage(damage);
 	}
 }
 
 void TowerObject::updateBullets(float deltaTime, GameObject* target) {
+	if (bullets.empty()) return;
 	// removing elements from the game array while iterating, don't think could do in "for i=x" loop
 	for (std::vector<BulletObject*>::iterator it = bullets.begin(); it != bullets.end();) {
 		(*it)->update(deltaTime, target);
