@@ -6,7 +6,7 @@
 
 class AmountView : public UIElement {
 public:
-	AmountView(GLuint* f, glm::vec3 p, GLint s, int, glm::vec3);
+	AmountView(GLuint* f, glm::vec3 p, GLint s, int, glm::vec4);
 	void add(int);
 	virtual void render(Shader &shader);
 
@@ -15,6 +15,6 @@ public:
 private:
 	int amount;
 	std::vector<Renderable*> view;
-	glm::vec3 colorMod;
+	glm::vec4 colorMod;
 };
 

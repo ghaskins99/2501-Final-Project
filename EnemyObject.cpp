@@ -11,10 +11,11 @@
 
 EnemyObject::EnemyObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, float s)
 	: GameObject(entityPos, entityTexture, entityNumElements) {
-	orientation - 0.0f;
+	orientation = 0.0f;
 	finished = true;
 	speed = s;
 	hp = 500.0f;
+	currNode = nullptr;
 }
 
 // Update function for moving the player object around

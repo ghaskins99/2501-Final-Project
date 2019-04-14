@@ -14,6 +14,7 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	rotationSpeed = 0.0f;
 	normalObj = false;
 	kill = false;
+	merked = false;
 }
 
 // this should only be used by asteroids/targets
@@ -64,5 +65,5 @@ void GameObject::render(Shader &shader) {
 
 void GameObject::takeDamage(float damage) {
 	hp -= damage;
-	if (hp <= 0.0f) kill = true;
+	if (hp <= 0.0f) kill = merked = true;
 }

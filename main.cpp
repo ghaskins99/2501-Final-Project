@@ -21,6 +21,7 @@
 #include "Graph.h"
 #include "Node.h"
 #include "UIController.h"
+#include "Renderable.h"
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -34,8 +35,8 @@ const unsigned int window_height_g = 600;
 const glm::vec3 viewport_background_color_g(0.15, 0.17, 0.21);
 
 // Global texture info
-GLuint tex[5];
-std::array<GLuint, 13> fakefont;
+GLuint tex[6];
+std::array<GLuint, 14> fakefont;
 
 GLuint sprite_vbo;
 GLuint sprite_ebo;
@@ -215,12 +216,13 @@ void setthisTexture(GLuint w, char *fname)
 void setallTexture(void)
 {
 	//	tex = new GLuint[4];
-	glGenTextures(5, tex);
+	glGenTextures(6, tex);
 	setthisTexture(tex[0], "Assets/blueship.png");
 	setthisTexture(tex[1], "Assets/rock.png");
 	setthisTexture(tex[2], "Assets/laser2.png");
 	setthisTexture(tex[3], "Assets/saw.png");
 	setthisTexture(tex[4], "Assets/fire.png");
+	setthisTexture(tex[5], "Assets/sawFast.png");
 
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
 
@@ -242,7 +244,11 @@ float getRand(float LO, float HI) {
 // gives the given game object a path where the start is defined by the object's location and the end is either found by updating the graph on click, or set manually beforehand
 void doPath(Graph &g, EnemyObject* obj, bool shouldUpdate) {
 	// get the node that the game object is on top of
-	int nodeId = g.getNodeIdFromCoords(obj->getPosition().x, -obj->getPosition().y);
+	int nodeId = 0;
+	if (obj->getCurrNode() != nullptr) {
+		nodeId = g.getNodeIdFromCoords(obj->getCurrNode()->getX(), -obj->getCurrNode()->getY());
+	}
+	
 
 	// set the start of the path to this node
 	g.setStart(nodeId);
@@ -299,36 +305,59 @@ int main(void) {
 		//Setup 40x30 graph
 		Graph g = Graph(40, 30, GameObject(glm::vec3(0.0f), tex[4], size));
 
-		// random start location for the player
-		int p = getRand(0, 1199);
-		int q;
+		//// random start location for the player
+		//int p = getRand(0, 1199);
+		//int q;
 
-		// make sure the npc does not start where the player does (yes they might start beside each other lol)
-		do {
-			q = getRand(0, 1199);
-		} while (p == q);
+		//// make sure the npc does not start where the player does (yes they might start beside each other lol)
+		//do {
+		//	q = getRand(0, 1199);
+		//} while (p == q);
 
-		Node* start = g.getNode(p);
+		//Node* start = g.getNode(p);
 
-		Node* npcStart = g.getNode(q);
+		//Node* npcStart = g.getNode(q);
 
 		// for towers
 		std::vector<TowerObject*> towerObjects;
 		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, texture for bullets
-		TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size, tex[2]);
-		towerObjects.push_back(tower);
+		//TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size, tex[2]);
+		//towerObjects.push_back(tower);
 
 		// enemy object info
 		std::vector<EnemyObject*> enemyObjects;
+		std::queue<EnemyObject*> spawnWaitingRoom;
+
+		// different spawn point & path for each enemy
+		Node* npcStart = g.getNode(0); // ^ not anymore
+		g.setEnd(1199);
+		glm::vec3 endNodeLoc(g.getNode(g.getEndId())->getX(), g.getNode(g.getEndId())->getY(), 0.f);
+		
 		// enemies
-		for (int i = 0; i < 4; ++i) {
-			// different spawn point & path for each enemy
-			npcStart = g.getNode(getRand(0, 1199));
-			g.setEnd(getRand(0, 1199));
+		EnemyObject* tempEnemy = nullptr;
+		for (int i = 0; i < 12; ++i) {
+			if (i > 7) {
+				tempEnemy = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[5], size, 3.3f);
+				tempEnemy->setHP(200.f);
+			}
+			else if (i > 3) {
+				tempEnemy = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[1], size, 1.1f);
+				tempEnemy->setHP(1000.f);
+			}
+			else {
+				tempEnemy = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.2f);	
+			}
 
-			enemyObjects.push_back(new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.3f));
-
-			doPath(g, enemyObjects[i], false);
+			if (i == 0) {
+				doPath(g, tempEnemy, false);
+				enemyObjects.push_back(tempEnemy);
+			}
+			else {
+				tempEnemy->setPath(g.getPath());
+				spawnWaitingRoom.push(tempEnemy);
+			}
+			
+			tempEnemy->setPosition(tempEnemy->getPosition() - glm::vec3(1.f, 0.f, 0.f));
 		}
 
 		// uuuu iiiii
@@ -337,6 +366,15 @@ int main(void) {
 			towerTextures.push_back(tex[0]);
 		}
 		UIController ui(fakefont.data(), size, towerTextures);
+
+		Renderable cursor(glm::vec3(20.0f, 20.0f, 0.0f), towerTextures[0], size);
+		cursor.setScale(glm::vec3(5.f, 4.f, 0.f));
+
+		bool shopping = false;
+
+		double spawnTime = 1.25;
+
+		double timeSinceLastSpawn = 0;
 
 		// Run the main loop
 		double lastTime = glfwGetTime();
@@ -350,42 +388,108 @@ int main(void) {
 			double deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
 
-			/*--------------- INPUT --------------------*/
+			// spawning
+			if (spawnWaitingRoom.size() > 0) {
+				timeSinceLastSpawn += deltaTime;
+				if (timeSinceLastSpawn > spawnTime) {
+					enemyObjects.insert(enemyObjects.begin(), spawnWaitingRoom.front());
+					timeSinceLastSpawn = 0;
+					spawnWaitingRoom.pop();
 
-			// left or right click does the same thing here: replans the path
-			if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+					if (spawnWaitingRoom.size() == 8) spawnTime = 0.75;
+					if (spawnWaitingRoom.size() == 4) spawnTime = 2.5;
+				}
+			}
+
+			/*------------------------------ INPUT ------------------------------*/
+
+			if (shopping) { // maybe place a new tower, or cancel
 				double xpos, ypos;
 				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
 
-				// dont let them click outside the graph area
+				Node* node = nullptr;
+				glm::vec3 cursorPos;
+				// draw the tower at the right spot
 				if ((xpos > 30 && xpos < 740 && ypos > 25 && ypos < 570)) {
-					// add a new tower if it's left click
-					// TODO: a tower is much larger area than one node on the graph, will want to do this first, then set all x amount of nodes
-					//		 "where the tower is" to obstacles
-
 					int n = g.selectNode(xpos, ypos);
-					Node* node = g.getNode(n);
+					node = (n == -1) ? nullptr : g.getNode(n);
 
-					// add a new tower (with a bullet in constr.)
-					if (!node->isObstacle()) { // dont add a million towers due to one click being registered in multiple frames
+					cursorPos = (node == nullptr) ? glm::vec3(20.f) : glm::vec3(node->getX(), node->getY(), 0.f);
+
+					cursor.setPos(cursorPos);
+				}
+
+				// if they click either place the tower or dont
+				if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+					cursor.setPos(glm::vec3(20.f, 20.f, 0.f));
+
+					if (node != nullptr && !node->isObstacle()) {
 						towerObjects.push_back(new TowerObject(glm::vec3(node->getX(), node->getY(), 0.0f), tex[0], size, tex[2]));
-					}
-					
-					bool trueOnlyOnce = true;
-					// gotta replan path since obstacle added
-					for (int i = enemyObjects.size() - 1; i > -1; --i) {
-						// the main event
-						doPath(g, enemyObjects[i], trueOnlyOnce);
 
-						// controls whether g.update() is called, only needs to happen once
-						if (trueOnlyOnce) {
-							trueOnlyOnce = false;
+						bool onPath = false;
+						for (Node* p : enemyObjects.back()->getPath()) {
+							if (p == node) {
+								onPath = true;
+								break;
+							}
 						}
+
+						if (onPath) {
+							bool trueOnlyOnce = true;
+							// gotta replan path since obstacle added
+							for (int i = enemyObjects.size() - 1; i > -1; --i) {
+								// the main event
+								doPath(g, enemyObjects[i], trueOnlyOnce);
+
+								trueOnlyOnce = false; // compiler pls
+							}
+						}
+						else {
+							g.update();
+						}
+
+						shopping = false;
+
+						ui.changeMoney(-ui.getShopCost(0));
+					}
+					else {
+						float cursor_x_pos = (xpos / (float)(window_width_g / 2)) - 1.0f;	//transforms cursor position to screen coordinates
+						float cursor_y_pos = (ypos / (float)(window_height_g / 2)) - 1.0f;
+
+						cursor_x_pos /= 0.2f;
+						cursor_y_pos /= 0.2f;
+
+						// "delete button"
+						if (glm::length(glm::vec3(cursor_x_pos, -cursor_y_pos, 0.f) - glm::vec3(4.7f, 3.7f, 0.0f)) < .15f) {
+							shopping = false;
+						}
+					}
+				}
+			} // set to "shopping" if needed
+			else if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+				double xpos, ypos;
+				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
+
+				float cx_pos = (xpos / (float)(window_width_g / 2)) - 1.0f;	//transforms cursor position to screen coordinates
+				float cy_pos = (ypos / (float)(window_height_g / 2)) - 1.0f;
+
+				cx_pos /= 0.2f;
+				cy_pos /= 0.2f;
+
+				glm::vec3 cPos(cx_pos, cy_pos, 0.f);
+
+				std::vector<glm::vec3> ships{ glm::vec3(3.7f, -2.7f, 0.f), glm::vec3(3.7f, .3f, 0.f), glm::vec3(3.7f, 3.3f, 0.f) };
+
+				for (int i = 0; i < 3; ++i) {
+					if (glm::length(cPos - ships[i]) < .65f && ui.getCurrentMoney() >= ui.getShopCost(i)) {
+						shopping = true;
+						cursor.setTex(towerTextures[i]);
+						break;
 					}
 				}
 			}
 
-			/*--------------- UPDATE --------------------*/
+			/*------------------------------ UPDATE ------------------------------*/
 
 			//Update and render "all" targets
 			for (int i = 0; i < enemyObjects.size(); ++i) {
@@ -408,30 +512,25 @@ int main(void) {
 				}
 				// the path is finished -> it goes back to wander
 				else {
-					// pick new node to wander to
-					do {
-						q = getRand(0, 1199);
-					} while (g.getEndId() == q); // I'd rather it not go to the same node, not that it really matters most likely
-
-					// end of new path
-					g.setEnd(q);
-
-					// actually gives enemy the path
-					doPath(g, enemy, false);
+					enemy->kill = true;
+					ui.changeHealth(-1);
 				}
 			}
 
-			//TODO: target selection, the below code uses the 'last' target in our vector
-
+			// towers, this also handles update of bullets
 			for (TowerObject* t : towerObjects) {
 				if (enemyObjects.empty())
 					break;
-				t->update(deltaTime, enemyObjects.back());
+				auto min_e = std::min_element(enemyObjects.begin(), enemyObjects.end(), [endNodeLoc](EnemyObject*& e1, EnemyObject*& e2) {
+					return glm::length(e1->getPosition() - endNodeLoc) < glm::length(e2->getPosition() - endNodeLoc);
+				});
+				t->update(deltaTime, (*min_e));
 			}
 
 			// removing elements from the game array while iterating, don't think could do in "for i=x" loop
 			for (std::vector<EnemyObject*>::iterator it = enemyObjects.begin(); it != enemyObjects.end();) {
 				if ((*it)->kill) {
+					if ((*it)->merked) ui.changeMoney((*it)->value);
 					delete (*it);
 					it = enemyObjects.erase(it);
 				}
@@ -440,7 +539,7 @@ int main(void) {
 				}
 			}
 
-			/*--------------- RENDER --------------------*/
+			/*------------------------------ RENDER ------------------------------*/
 
 			// Select proper shader program to use
 			spriteShader.enable();
@@ -450,16 +549,17 @@ int main(void) {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite_ebo);
 			spriteShader.attributeBinding();
 
-			// Setup camera to focus on (0, 0)
-			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f)) * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
+			// big yeet for UI
+			glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
 			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
 
 			glViewport(0, 0, 1000, 600);
 			ui.render(spriteShader);
 
+			// best function ever
 			glViewport(0, 0, 800, 600);
 
-			// setup camera to zoom/pan
+			// setup camera to zoom/pan for regular game rendering
 			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
 			cameraZoom = 0.2f;
 			g.setScreenScale(cameraZoom);
@@ -475,11 +575,15 @@ int main(void) {
 				t->render(spriteShader);
 			}
 
-			g.render(spriteShader);
+			if (shopping) { // ok to not reset colorMod because this is the last thing the spriteShader deals with and the first of the loop will reset it
+				spriteShader.setUniform4f("colorMod", glm::vec4(0.1f, 0.1f, 0.1f, -.5f));
+				cursor.render(spriteShader);
+			}
+
+			//g.render(spriteShader);
 
 			// flame throwaaaa
-			float fireDistance = (enemyObjects.empty() || towerObjects.empty()) ? 100.f : glm::length(towerObjects.back()->getPosition() - enemyObjects.back()->getPosition());
-			if (fireDistance < 0.5f / cameraZoom) {
+			if (!enemyObjects.empty() && !towerObjects.empty()) {
 				//get ready to draw particles
 				//glBlendFunc(GL_ONE, GL_ONE);
 				glDepthMask(GL_FALSE); // draw particles without writing to depth buffer
@@ -487,7 +591,13 @@ int main(void) {
 				glBindBuffer(GL_ARRAY_BUFFER, partic_vbo);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, partic_ebo);
 				fireShader->attributeBinding();
-				drawParticles(fireShader->getShaderID() , 1000, towerObjects.back(), cameraZoom);
+
+				for (TowerObject* t : towerObjects) {
+					float fireDistance = glm::length(t->getPosition() - enemyObjects.back()->getPosition());
+					if (fireDistance < 0.5f / cameraZoom) {
+						drawParticles(fireShader->getShaderID(), 1000, t, cameraZoom);
+					}
+				}
 			}
 
 			// Update other events like input handling

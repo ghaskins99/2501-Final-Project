@@ -2,7 +2,7 @@
 
 using namespace std;
 
-AmountView::AmountView(GLuint* f, glm::vec3 p, GLint s, int startChar, glm::vec3 color)
+AmountView::AmountView(GLuint* f, glm::vec3 p, GLint s, int startChar, glm::vec4 color)
 	: UIElement(f, p, s), colorMod(color) {
 	amount = 0;
 
@@ -15,8 +15,14 @@ void AmountView::add(int addition) {
 	amount += addition;
 	int newLength = to_string(amount).length();
 
+	// old < new
 	for (int i = oldLength + 1; i < newLength + 1; ++i) {
 		view.push_back(new Renderable(position + glm::vec3(i * 0.15f, 0.f, 0.f), font[0], numElements));
+	}
+
+	// new < old
+	for (int i = newLength; i < oldLength; ++i) {
+		view.pop_back();
 	}
 
 	for (int i = 1; i < view.size(); ++i) {
@@ -25,7 +31,7 @@ void AmountView::add(int addition) {
 }
 
 void AmountView::render(Shader &shader) {
-	shader.setUniform3f("colorMod", colorMod);
+	shader.setUniform4f("colorMod", colorMod);
 	for (Renderable* i : view) {
 		i->render(shader);
 	}

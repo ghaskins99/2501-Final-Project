@@ -23,8 +23,9 @@ public:
 	// Setters
 	inline void setPosition(glm::vec3& newPosition) { position = newPosition; }
 	virtual void takeDamage(float);
+	inline void setHP(float h) { hp = h; }
 
-	bool kill;
+	bool kill, merked;
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables

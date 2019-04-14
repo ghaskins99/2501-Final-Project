@@ -13,12 +13,14 @@ public:
 	virtual void render(Shader &shader) override;
 
 	void setPath(std::vector<Node*> p);
+	std::vector<Node*> getPath() { return path; }
 
 	void nextNode();
 
 	inline Node* getCurrNode() { return currNode; }
 	inline bool getFinished() { return finished; }
 
+	int value = 25;
 protected:
 	// current path to follow
 	std::vector<Node*> path;

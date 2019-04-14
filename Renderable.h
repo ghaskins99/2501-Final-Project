@@ -17,6 +17,7 @@ public:
 	inline void setTex(GLuint t) { texture = t; }
 	inline GLuint getTex() { return texture; }
 	inline void setScale(glm::vec3 s) { scale = s; }
+	inline void setPos(glm::vec3 p) { position = p; }
 protected:
 	glm::vec3 position;
 	GLint numElements;
