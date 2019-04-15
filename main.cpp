@@ -319,8 +319,10 @@ int main(void) {
 		// Set up the textures
 		setallTexture();
 
-		// setup cameraZoom outside now
+		// setup camera parameters outside now
 		float cameraZoom = 0.2f;
+
+		glm::vec3 cameraTranslatePos(0.f);
 
 		/*------------------ GAME SPECIFIC STUFF --------------------------*/
 
@@ -334,9 +336,6 @@ int main(void) {
 
 		// for towers
 		std::vector<TowerObject*> towerObjects;
-		// Setup the first tower object (for now, we will start with a tower) : position, texture, vertex count, texture for bullets
-		//TowerObject* tower = new TowerObject(glm::vec3(start->getX(), start->getY(), 0.0f), tex[0], size, tex[2]);
-		//towerObjects.push_back(tower);
 
 		// enemy object info
 		std::vector<EnemyObject*> enemyObjects;
@@ -350,6 +349,7 @@ int main(void) {
 		// enemies
 		EnemyObject* tempEnemy = nullptr;
 		for (int i = 0; i < 12; ++i) {
+			// different enemy types (hush yes they are)
 			if (i > 7) {
 				tempEnemy = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[5], size, 3.3f);
 				tempEnemy->setHP(200.f);
@@ -362,6 +362,7 @@ int main(void) {
 				tempEnemy = new EnemyObject(glm::vec3(npcStart->getX(), npcStart->getY(), 0.0f), tex[3], size, 2.2f);
 			}
 
+			// first enemy can be spawned, the rest must wait
 			if (i == 0) {
 				doPath(g, tempEnemy, false);
 				enemyObjects.push_back(tempEnemy);
@@ -371,21 +372,22 @@ int main(void) {
 				spawnWaitingRoom.push(tempEnemy);
 			}
 
-			tempEnemy->setPosition(tempEnemy->getPosition() - glm::vec3(1.f, 0.f, 0.f));
+			tempEnemy->setPosition(tempEnemy->getPosition() - glm::vec3(1.f, 0.f, 0.f)); //small offset
 		}
 
 		// uuuu iiiii
 		std::vector<GLuint> towerTextures;
 		for (int i = 6; i < 9; ++i) {
-			towerTextures.push_back(tex[i]);
+			towerTextures.push_back(tex[i]); //textures for placeable towers are contiguous at end of regular texture array
 		}
 
 		UIController ui(fakefont.data(), size, towerTextures);
-		ui.changeMoney(1000);
 
 		Renderable cursor(glm::vec3(20.0f, 20.0f, 0.0f), towerTextures[0], size);
 		cursor.setScale(glm::vec3(5.f, 4.f, 0.f));
+		// </ui>
 
+		// shopping control
 		bool shopping = false;
 		int towerChoice = -1;
 
@@ -409,10 +411,8 @@ int main(void) {
 				timeSinceLastSpawn += deltaTime;
 				if (timeSinceLastSpawn > spawnTime) {
 					enemyObjects.insert(enemyObjects.begin(), spawnWaitingRoom.front());
-					timeSinceLastSpawn = 0;
-					spawnWaitingRoom.pop();
-					// Select proper shader program to use
-					spriteShader.enable();
+					timeSinceLastSpawn = 0; // reset spawn timer
+					spawnWaitingRoom.pop(); // pop that bad boi
 
 					if (spawnWaitingRoom.size() == 8) spawnTime = 0.75;
 					if (spawnWaitingRoom.size() == 4) spawnTime = 2.5;
@@ -420,19 +420,39 @@ int main(void) {
 			}
 
 			/*------------------------------ INPUT ------------------------------*/
-
+			// first spawn of mobile defender
 			if (glfwGetKey(window.getWindow(), GLFW_KEY_X) == GLFW_PRESS && !defender) {
 				towerObjects.push_back(new MobileDefender(glm::vec3(pNode->getX(), pNode->getY(), 0.0f), tex[0], size, tex[2]));
 				defender = true;
 			}
+			// camera controls
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
+				cameraZoom += 1.0 * deltaTime;
+			}
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS) {
+				cameraZoom = std::max(0.01f, cameraZoom - 1.0f * (float)deltaTime);
+			}
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_W) == GLFW_PRESS) {
+				cameraTranslatePos.y -= 3.0 * deltaTime;
+			}
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_S) == GLFW_PRESS) {
+				cameraTranslatePos.y += 3.0 * deltaTime;
+			}
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_A) == GLFW_PRESS) {
+				cameraTranslatePos.x += 3.0 * deltaTime;
+			}
+			if (glfwGetKey(window.getWindow(), GLFW_KEY_D) == GLFW_PRESS) {
+				cameraTranslatePos.x -= 3.0 * deltaTime;
+			}
 
+			// decide how to handle mouse interaction
 			if (shopping) { // maybe place a new tower, or cancel
 				double xpos, ypos;
 				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
 
 				Node* node = nullptr;
 				glm::vec3 cursorPos;
-				// draw the tower at the right spot
+				// draw the tower cursor at the right spot
 				if ((xpos > 30 && xpos < 740 && ypos > 25 && ypos < 570)) {
 					int n = g.selectNode(xpos, ypos);
 					node = (n == -1) ? nullptr : g.getNode(n);
@@ -444,9 +464,11 @@ int main(void) {
 
 				// if they click either place the tower or dont
 				if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
-					cursor.setPos(glm::vec3(20.f, 20.f, 0.f));
+
+					cursor.setPos(glm::vec3(20.f, 20.f, 0.f)); // the temp cursor can go away
 
 					if (node != nullptr && !node->isObstacle()) {
+						// choice of tower type
 						switch (towerChoice)
 						{
 						case 0:
@@ -461,6 +483,7 @@ int main(void) {
 							break;
 						}
 
+						// if we need to pathfind or not
 						bool onPath = false;
 						for (Node* p : enemyObjects.back()->getPath()) {
 							if (p == node) {
@@ -480,12 +503,13 @@ int main(void) {
 							}
 						}
 						else {
+							// still set the node as an obstacle
 							g.update();
 						}
 
-						shopping = false;
+						shopping = false; // end shopping
 
-						ui.changeMoney(-ui.getShopCost(0));
+						ui.changeMoney(-ui.getShopCost(towerChoice)); // rip money
 					}
 					else {
 						float cursor_x_pos = (xpos / (float)(window_width_g / 2)) - 1.0f;	//transforms cursor position to screen coordinates
@@ -500,7 +524,7 @@ int main(void) {
 						}
 					}
 				}
-			} // set to "shopping" if needed
+			} // set to "shopping" if warranted
 			else if (glfwGetMouseButton(Window::getWindow(), GLFW_MOUSE_BUTTON_LEFT)) {
 				double xpos, ypos;
 				glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
@@ -553,7 +577,7 @@ int main(void) {
 				}
 			}
 
-			// target selection for towers
+			// target selection for towers, outside of loop b/c same for each tower
 			auto min_e = std::min_element(enemyObjects.begin(), enemyObjects.end(), [endNodeLoc](EnemyObject*& e1, EnemyObject*& e2) {
 				return glm::length(e1->getPosition() - endNodeLoc) < glm::length(e2->getPosition() - endNodeLoc);
 			});
@@ -564,7 +588,7 @@ int main(void) {
 					break;
 
 				if (t->getType() == "flame") {
-					((FlameTower*)t)->update(deltaTime, enemyObjects);
+					((FlameTower*)t)->update(deltaTime, enemyObjects); // note can use polymorphism no time to update - G
 					((FlameTower*)t)->updateBullets(deltaTime, enemyObjects);
 				}
 				else if (t->getType() == "slow") {
@@ -582,17 +606,17 @@ int main(void) {
 						// actually gives enemy the path
 						doPath(g, m, false);
 					}
-					m->update(deltaTime, enemyObjects.back()); // maybe set to min_e
+					m->update(deltaTime, enemyObjects.back()); // maybe set to min_e (closest to the end)
 				}
 				else {
-					t->update(deltaTime, (*min_e));
+					t->update(deltaTime, (*min_e)); // regular towers
 				}
 			}
 
 			// removing elements from the game array while iterating, don't think could do in "for i=x" loop
 			for (std::vector<EnemyObject*>::iterator it = enemyObjects.begin(); it != enemyObjects.end();) {
 				if ((*it)->kill) {
-					if ((*it)->merked) ui.changeMoney((*it)->value);
+					if ((*it)->merked) ui.changeMoney((*it)->value); // specifically killed by tower instead of just deleted
 					delete (*it);
 					it = enemyObjects.erase(it);
 				}
@@ -622,8 +646,6 @@ int main(void) {
 			glViewport(0, 0, 800, 600);
 
 			// setup camera to zoom/pan for regular game rendering
-			glm::vec3 cameraTranslatePos(glm::vec3(0.0f));
-			cameraZoom = 0.2f;
 			g.setScreenScale(cameraZoom);
 			viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom)) * glm::translate(glm::mat4(1.0f), cameraTranslatePos);
 			spriteShader.setUniformMat4("viewMatrix", viewMatrix);
@@ -660,7 +682,7 @@ int main(void) {
 						drawParticles(fireShader->getShaderID(), 1000, towerObjects[i], cameraZoom);
 					}
 				}
-				glDepthMask(GL_TRUE);
+				glDepthMask(GL_TRUE); // fixes things
 			}
 
 			// Update other events like input handling
