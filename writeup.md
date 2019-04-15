@@ -62,6 +62,7 @@
     X - No **time** for a **timed** powerup (haha)
 
 ## 4. Discussion of gameplay or technical features that go beyond the minimum
+There might be some that exist but I'm not sure and don't have enough time to verify.
 
 ## 5. Design notes - list of entities in the game and how they behave; comments on and explanations of design decisions you made
 Enemies:
@@ -79,3 +80,45 @@ Towers:
 - Autonomous Defender - The autonomous defender uses a chase behaviour to go after enemies. As soon as its target is within range, the defender stops moving and begins to shoot at the target. If the target leaves its range the defender resumes its chase behaviour. If the target dies, it chooses a new target. The defender fires significantly faster than the default tower, but does significantly less damage because it is mobile.
 
 ## 6. Implementation notes
+#### Towers
+All towers inherit from GameObject. The flamethrower tower inherits from TowerObject but the slow tower does not. This is because the slow tower has no use for the firing behaviour in TowerObject.
+
+While the flamethrower tower does not "shoot" projectiles, it maintains a vector of BulletObjects that are used for hit detection. The scale and position of each bullet is manipulated directly by FlameTower.
+
+The autonomous defender inherits from TowerObject because when it target is within range, it stays still and shoots. It reuses a lot of the code in EnemyObject, but does not inherit from EnemyObject. This design decision was made for the sake of clarity.
+#### Enemies
+All enemies are variations of the base EnemyObject which inherits from GameObject. GameObject in turn inherits from Renderable since every item that needs to be viewed (not just game objects) shares some properties that can be grouped under a "Renderable" type.
+
+Enemy differences include changing the texture and speed/health of individual EnemyObjects. This design decision was done for the sake of time.
+
+#### Other
+Certain towers will aim for the enemy that is closest to the goal using std::minElement with a lambda function to compute each enemy's distance from the end.
+
+All UIElements are Renderable, and some UIElements are specialized into subclasses such as AmountView and Shop. This saves a lot of reuse of code for common properties/functions, and allows the objects to delegate tasks such as rendering.
+
+We did not add a real font using text, but a makeshift font is used for numbers and some symbols which is used in AmountView and personally I think it worksk quite nicely.
+
+## 7. Known bugs and limitations
+The flamethrower tower uses circular hit detection with multiple circles that very roughly approximates a cone.
+
+None of the towers have indicators to show their range.
+
+There is no minimum movement speed, so if a player buys enough slow towers, the enemies basically stop moving.
+
+Other missing features mentioned in this readme
+
+## 8. Comments on individual contributions
+Early work (the first assignment related to the project) worked on together.
+
+Particle system, UI interaction/HUD and enemy types, along with general game functions (associated with these listed elements or otherwise [ex. pathfinding decision behavour - when to replan the path or not, camera pan/zoom]), writeup - Graydon
+
+Multiple tower types, autonomous mobile defender, other general functions, some writeup (note: written by Graydon, I am not sure if I have listed everything but I hope I have) - Kevin
+
+(this is as much information as can be given in time)
+
+## 9. Project postmortem
+Likes: coding challenges, general structure of program and technical decisions. Dislikes: some gameplay elements (not neccessarily disliked but I left them to the end and did not finish them so maybe that says something). Proud of the UI as I think it is a decent system.
+
+No real organization system for time, group members deciced on tasks from requirements to work on and let each other know what they are doing / how it is coming along. Somewhat effective, more communication would have been nice but that is neither member's fault. 
+
+Differently: work on the project earlier (I admit I would not do this since the deadline seemed "so far away")
