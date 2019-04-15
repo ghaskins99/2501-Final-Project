@@ -11,7 +11,7 @@ Technical Requirements
 	4. Finite state machine controlling overall game (e.g., loading screen, pause, break from action between levels).
 		Did not get this working.
 
-	5. At least two instances of particle systems used.\
+	5. At least two instances of particle systems used.
 		Only 1 instance of particle systems is present. It is used for the flamethrower tower's fire effect.
 
 	6. All movement handled through transformations.
@@ -24,6 +24,7 @@ Technical Requirements
 
 Gameplay Requirements
 	1. At least three different enemy types.
+		
 
 	2. At least three different tower types.
 		The game has a default tower, a flamethrower tower and an AOE slow tower
@@ -36,10 +37,10 @@ Gameplay Requirements
 	5. At least three levels with different layouts.
 
 	6. A HUD showing available towers, current cash, health, other game elements of interest.
+		There is a shop that the player can purchase towers from.
 
 	7. At least one interesting powerup with a timer.
-
-	8. No cheese -- choices should be interesting.
+		Did not get this working
 
 Gameplay/Technical Features Beyond Minimum
 	N/A
@@ -51,6 +52,8 @@ Design Notes
 	3. AOE Slow Tower - The AOE slow tower reduces the speed of all enemies within range by 50%. Multiple slow towers can affect an enemy. The slow reduction is multiplicative (i.e. 50% -> 25% -> 12.5% etc). Enemies are no longer affected when they leave the tower's range.
 	4. Autonomous Defender - The autonomous defender uses a chase behaviour to go after enemies. As soon as its target is within range, the defender stops moving and begins to shoot at the target. If the target leaves its range the defender resumes its chase behaviour. If the target dies, it chooses a new target. The defender fires significantly faster than the default tower, but does significantly less damage because it is mobile.
 
+	
+
 Implementation Notes
 	All towers inherit from GameObject. The flamethrower tower inherits from TowerObject but the slow tower does not. This is because the slow tower has no use for the firing behaviour in TowerObject.
 	While the flamethrower tower does not "shoot" projectiles, it maintains a vector of BulletObjects that are used for hit detection. The scale and position of each bullet is manipulated directly by FlameTower.
@@ -60,4 +63,5 @@ Known Bugs/Limitations
 	The autonomous defender does not face the direction it is travelling.
 	The flamethrower tower uses circular hit detection with multiple circles that very roughly approximates a cone.
 	None of the towers have indicators to show their range.
+	There is no minimum movement speed, so if a player buys enough slow towers, the enemies basically stop moving.
 
